@@ -27,6 +27,39 @@ const Question = () => {
     setDateTime((prev) => ({ ...prev, time }));
   };
 
+  // Disable past dates
+  const disabledDate = (current: dayjs.Dayjs) => {
+    return current && current < dayjs().startOf("day");
+  };
+
+  // Disable past times for the selected date
+  const disabledTime = () => {
+    const now = dayjs();
+    const isToday = dateTime.date && dateTime.date.isSame(now, "day");
+
+    if (isToday) {
+      return {
+        disabledHours: () =>
+          Array.from({ length: 24 }, (_, i) => i).filter(
+            (hour) => hour < now.hour()
+          ),
+        disabledMinutes: (selectedHour: number) =>
+          selectedHour === now.hour()
+            ? Array.from({ length: 60 }, (_, i) => i).filter(
+                (minute) => minute < now.minute()
+              )
+            : [],
+        disabledSeconds: () => [],
+      };
+    }
+
+    return {
+      disabledHours: () => [],
+      disabledMinutes: () => [],
+      disabledSeconds: () => [],
+    };
+  };
+
   const nextQuestion = () => {
     if (dateTime.date && dateTime.time) {
       const combinedDateTime = dayjs(dateTime.date)
@@ -71,8 +104,16 @@ const Question = () => {
           </h2>
           <section className="d-flex flex-column align-items-center pt-3">
             <div className="d-flex gap-3">
-              <DatePicker size="large" onChange={onChangeDate} />
-              <TimePicker onChange={onChangeTime} size="large" />
+              <DatePicker
+                size="large"
+                onChange={onChangeDate}
+                disabledDate={disabledDate}
+              />
+              <TimePicker
+                size="large"
+                onChange={onChangeTime}
+                disabledTime={disabledTime}
+              />
             </div>
           </section>
           <HeartButton
